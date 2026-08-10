@@ -35,24 +35,6 @@ function buildDiscoverUrl({ type, search, genre, filter, sort, page }) {
   };
 }
 
-// Trim each result to only what the UI renders — 90%+ smaller payload
-function slimList(items, type) {
-  return items.map((it) => ({
-    id: it.id,
-    t: type,
-    title: type === 'tv' ? it.name : it.title,
-    p: it.poster_path,
-    b: it.backdrop_path,
-    o: it.overview,
-    y: (type === 'tv' ? it.first_air_date : it.release_date || '').slice(0, 4),
-    r: it.vote_average,
-    v: it.vote_count,
-    a: it.adult ? 1 : 0,
-    g: it.genre_ids,
-    pop: it.popularity,
-  }));
-}
-
 async function list(req, res, next) {
   try {
     const opts = sanitize({
@@ -72,7 +54,7 @@ async function list(req, res, next) {
       page: data.page || opts.page,
       totalPages: Math.min(data.total_pages || 1, 500),
       totalResults: data.total_results || 0,
-      results: slimList(data.results || [], opts.type),
+      results: data.results || [],
     });
   } catch (err) {
     next(err);
@@ -108,29 +90,11 @@ async function trendingCombined(req, res, next) {
       (a, b) => (b.popularity || 0) - (a.popularity || 0)
     );
 
-    const slimmed = merged.map((it) => {
-      const type = it.title ? 'movie' : 'tv';
-      return {
-        id: it.id,
-        t: type,
-        title: type === 'tv' ? it.name : it.title,
-        p: it.poster_path,
-        b: it.backdrop_path,
-        o: it.overview,
-        y: (type === 'tv' ? it.first_air_date : it.release_date || '').slice(0, 4),
-        r: it.vote_average,
-        v: it.vote_count,
-        a: it.adult ? 1 : 0,
-        g: it.genre_ids,
-        pop: it.popularity,
-      };
-    });
-
     res.json({
       success: true,
       page,
-      results: slimmed,
-      totalResults: slimmed.length,
+      results: merged,
+      totalResults: merged.length,
     });
   } catch (err) {
     next(err);

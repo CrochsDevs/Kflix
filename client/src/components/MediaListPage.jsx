@@ -5,7 +5,6 @@ import MovieCard from './MovieCard';
 import Pagination from './Pagination';
 import MovieModal from './MovieModal';
 import { discover, genres as fetchGenres } from '../api/client';
-import { slimToCard } from '../api/images';
 
 export default function MediaListPage({ type, titleFor, heroTypes }) {
   const [params, setParams] = useSearchParams();
@@ -54,7 +53,7 @@ export default function MediaListPage({ type, titleFor, heroTypes }) {
     }
     if (genreId > 0) {
       const g = genres.find((x) => x.id === genreId);
-      return `${g?.n || g?.name || 'Selected'} ${type === 'tv' ? 'TV Shows' : 'Movies'}`;
+      return `${g?.name || 'Selected'} ${type === 'tv' ? 'TV Shows' : 'Movies'}`;
     }
     const map = { day: 'Trending Today', week: 'Trending This Week' };
     return titleFor?.[filter] || map[filter] || 'Trending';
@@ -127,19 +126,14 @@ export default function MediaListPage({ type, titleFor, heroTypes }) {
 
           {!loading && data.results.length > 0 && (
             <div className="movie-grid">
-              {data.results.map((item) => {
-                // Slim response → expand to card-friendly fields
-                const card = slimToCard(item);
-                const cardType = item.t || type;
-                return (
-                  <MovieCard
-                    key={`${cardType}-${item.id}`}
-                    item={card}
-                    type={cardType}
-                    onInfo={(it) => setActiveItem({ ...it, _type: cardType })}
-                  />
-                );
-              })}
+              {data.results.map((item) => (
+                <MovieCard
+                  key={`${type}-${item.id}`}
+                  item={item}
+                  type={type}
+                  onInfo={(it) => setActiveItem(it)}
+                />
+              ))}
             </div>
           )}
 

@@ -4,7 +4,6 @@ import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
 import MovieModal from '../components/MovieModal';
 import { newPopular } from '../api/client';
-import { slimToCard } from '../api/images';
 
 const SORTS_MOVIE = ['popularity.desc', 'vote_average.desc', 'release_date.desc', 'title.asc'];
 const SORTS_TV = ['popularity.desc', 'vote_average.desc', 'first_air_date.desc', 'name.asc'];
@@ -74,13 +73,12 @@ export default function NewPopularPage() {
         ) : (
           <div className="movie-grid">
             {data.results.map((item) => {
-              const type = item.t || (item.title ? 'movie' : 'tv');
-              const card = slimToCard(item);
+              const type = item.title ? 'movie' : 'tv';
               return (
                 <div key={`${type}-${item.id}`} className="movie-card-wrap">
                   <span className={`type-badge ${type}`}>{type === 'movie' ? 'MOVIE' : 'TV'}</span>
                   <MovieCard
-                    item={card}
+                    item={item}
                     type={type}
                     onInfo={(it) => setActiveItem({ item: it, type })}
                   />

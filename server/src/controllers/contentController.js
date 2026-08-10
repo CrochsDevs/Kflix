@@ -11,23 +11,15 @@ function pickYouTubeTrailer(videos = []) {
 }
 
 function buildEmbedServers(type, movieId, season = 1, episode = 1) {
-  // Note: third-party embeds go up/down constantly. Most reliable as of late 2026:
-  //   vidsrc.to / multiembed.mov — primary
-  //   2embed.cc — frequently down (kept as fallback)
   if (type === 'tv') {
     return [
       {
-        name: 'Vidsrc',
+        name: 'Server 1',
         url: `https://vidsrc.to/embed/tv/${movieId}/${season}/${episode}`,
         status: 'active',
       },
       {
-        name: 'MultiEmbed',
-        url: `https://multiembed.mov/?video_id=${movieId}&s=${season}&e=${episode}`,
-        status: 'active',
-      },
-      {
-        name: '2Embed',
+        name: 'Server 2',
         url: `https://www.2embed.cc/embedtv/${movieId}&s=${season}&e=${episode}`,
         status: 'active',
       },
@@ -35,17 +27,12 @@ function buildEmbedServers(type, movieId, season = 1, episode = 1) {
   }
   return [
     {
-      name: 'Vidsrc',
+      name: 'Server 1',
       url: `https://vidsrc.to/embed/movie/${movieId}`,
       status: 'active',
     },
     {
-      name: 'MultiEmbed',
-      url: `https://multiembed.mov/?video_id=${movieId}`,
-      status: 'active',
-    },
-    {
-      name: '2Embed',
+      name: 'Server 2',
       url: `https://www.2embed.cc/embed/${movieId}`,
       status: 'active',
     },
@@ -62,7 +49,6 @@ async function getContent(req, res, next) {
     if (!id) {
       return res.status(400).json({ success: false, message: 'Missing id' });
     }
-
     const data = await tmdbRequest(`/${type}/${id}`, {
       append_to_response: 'videos,credits,recommendations,similar',
     });
@@ -73,24 +59,13 @@ async function getContent(req, res, next) {
         ? data.recommendations.results.slice(0, 12)
         : (data.similar?.results || []).slice(0, 12);
 
+    // Public-domain / CC streams from archive.org (free, safe)
     const title = type === 'tv' ? data.name : data.title;
     const releaseDate = type === 'tv' ? data.first_air_date : data.release_date;
     const year = releaseDate ? releaseDate.slice(0, 4) : '';
+    const archiveSources = type === 'movie' ? await searchPlayableMovie(title, year, 3) : [];
 
-    // Public-domain streams from archive.org (cached, fast after first request)
-    let archiveSources = [];
-    if (type === 'movie') {
-      try {
-        // Hard 8s budget — don't block the whole request
-        archiveSources = await Promise.race([
-          searchPlayableMovie(title, year, 3),
-          new Promise((resolve) => setTimeout(() => resolve([]), 8000)),
-        ]);
-      } catch (e) {
-        archiveSources = [];
-      }
-    }
-
+    // Embed servers (personal use only — third-party streams)
     const embeds = buildEmbedServers(type, id, season, episode);
 
     res.json({

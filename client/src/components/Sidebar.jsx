@@ -69,7 +69,7 @@ export default function Sidebar({ type, search, genreId, filter, sort, onChange 
               className={`genre-item ${genreId === g.id ? 'active' : ''}`}
               onClick={() => update({ genreId: g.id })}
             >
-              {g.n || g.name}
+              {g.name}
             </button>
           ))}
         </div>
