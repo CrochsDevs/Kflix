@@ -110,6 +110,34 @@
 .watchlist-stats { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); }
 .watchlist-stats p { display: flex; justify-content: space-between; color: var(--text-gray); font-size: var(--font-sm); }
 
+/* Portfolio banner + disclaimer */
+.portfolio-banner {
+  background: linear-gradient(to right, #1a1a1a, #0f0f0f);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 8px 16px;
+  position: sticky;
+  top: 70px;
+  z-index: 900;
+}
+.portfolio-banner i { color: var(--primary-color); margin-right: 8px; }
+.disclaimer {
+  color: var(--text-dark-gray);
+  font-size: var(--font-xs);
+  line-height: 1.7;
+  max-width: 800px;
+  margin-bottom: var(--spacing-xxl);
+  padding: 14px 18px;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--primary-color);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.02);
+}
+.disclaimer i { color: var(--primary-color); margin-right: 6px; }
+.disclaimer strong { color: var(--text-gray); }
+
 /* Source bar */
 .source-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: 16px;

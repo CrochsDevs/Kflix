@@ -27,8 +27,9 @@ export default function Footer() {
             <a href="#">Corporate Information</a>
           </div>
         </div>
-        <div className="service-code">
-          <span>Service Code</span>
+        <div className="disclaimer">
+          <i className="fas fa-code"></i> This website is built for <strong>portfolio / educational purposes only</strong>.
+          It is not monetized and is not intended for commercial use. All movie data and posters are provided by TMDB.
         </div>
         <p className="copyright">&copy; 2026 KFLIX - CrochsDevs, Inc.</p>
       </div>

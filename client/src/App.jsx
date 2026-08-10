@@ -23,6 +23,9 @@ export default function App() {
     <div className="app">
       {!isPlay && <Navbar />}
       <main className="main-content">
+        <div className="portfolio-banner">
+          <i className="fas fa-code" /> Demo / Portfolio Project - Not for commercial use
+        </div>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/movies" element={<MoviesPage />} />
