@@ -69,6 +69,22 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 2px; text-transform: uppercase; margin: 0;
 }
 .nav-links { display: flex; gap: var(--spacing-xl); align-items: center; margin-left: 40px; }
+.nav-search { position: relative; display: flex; align-items: center; margin-left: 20px; }
+.nav-search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--text-dark-gray); font-size: 0.85rem; pointer-events: none;
+}
+.nav-search-input {
+  width: 220px; padding: 8px 14px 8px 36px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color); border-radius: 20px;
+  color: var(--text-light); font-size: var(--font-sm);
+  outline: none; transition: all var(--transition-normal);
+}
+.nav-search-input:focus {
+  border-color: var(--primary-color); background: rgba(255, 255, 255, 0.12); width: 260px;
+}
+.nav-search-input::placeholder { color: var(--text-dark-gray); }
 .nav-link {
   color: var(--text-gray); font-size: var(--font-sm); font-weight: 500;
   transition: color var(--transition-normal);
