@@ -161,7 +161,7 @@ export default function PlayPage() {
         <div className="source-meta">
           {sourceMode === 'embed' ? (
             <>
-              <i className="fas fa-info-circle" /> Third-party streams (personal use)
+              <i className="fas fa-exclamation-triangle" style={{ color: '#ffad1f' }} /> May show ads - external servers
             </>
           ) : (
             <>
