@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: kflix-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: TMDB_API_KEY
+        sync: false
+      - key: TMDB_BASE_URL
+        value: https://api.themoviedb.org/3
+      - key: TMDB_IMAGE_BASE
+        value: https://image.tmdb.org/t/p
+      - key: CACHE_DIR
+        value: ./cache
+      - key: CACHE_TTL_HOURS
+        value: 24
