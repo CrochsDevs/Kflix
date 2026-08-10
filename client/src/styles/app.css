@@ -149,13 +149,15 @@
 .source-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
 .source-btn {
   background: #2a2a2a; border: 1px solid #444; color: var(--text-dim);
-  padding: 8px 18px; border-radius: 25px; cursor: pointer;
+  min-height: 44px; padding: 10px 18px; border-radius: 25px; cursor: pointer;
   font-size: 0.9rem; font-weight: 500;
   display: inline-flex; align-items: center; gap: 8px;
   transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .source-btn i { color: var(--primary-color); font-size: 0.85rem; }
-.source-btn:hover:not(.active) { background: #333; border-color: var(--primary-color); color: white; }
+.source-btn:hover:not(.active), .source-btn:active { background: #333; border-color: var(--primary-color); color: white; }
 .source-btn.active { background: var(--primary-color); border-color: var(--primary-color); color: white; }
 .source-btn.active i { color: white; }
 .source-dot {
@@ -165,12 +167,14 @@
 }
 .source-mode {
   background: #1a1a1a; border: 1px solid var(--primary-color); color: var(--primary-color);
-  padding: 8px 18px; border-radius: 25px; cursor: pointer;
+  min-height: 44px; padding: 10px 18px; border-radius: 25px; cursor: pointer;
   font-size: 0.9rem; font-weight: 600;
   display: inline-flex; align-items: center; gap: 8px;
   transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.source-mode:hover:not(.active) { background: rgba(229,9,20,0.15); }
+.source-mode:hover:not(.active), .source-mode:active { background: rgba(229,9,20,0.15); }
 .source-mode.active { background: var(--primary-color); color: white; }
 .source-mode i { font-size: 0.85rem; }
 .source-mode.active i { color: white; }
@@ -189,7 +193,8 @@
 .player-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; }
 .player-placeholder i { font-size: 4rem; margin-bottom: 10px; opacity: 0.5; }
 .player-actions { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
-.watchlist-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 22px; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 500; transition: all 0.2s ease; }
+.player-actions .btn-play-modal { min-height: 44px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.watchlist-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; min-height: 44px; padding: 10px 22px; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 500; transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .watchlist-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
 .watchlist-btn.in-list { background: rgba(229,9,20,0.15); border-color: var(--primary-color); }
 .watchlist-btn.in-list i { color: var(--primary-color); }
