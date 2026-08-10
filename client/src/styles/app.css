@@ -116,6 +116,18 @@
 .watchlist-stats { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); }
 .watchlist-stats p { display: flex; justify-content: space-between; color: var(--text-gray); font-size: var(--font-sm); }
 
+/* Embed wrapper + fallback */
+.embed-wrap { position: relative; width: 100%; }
+.embed-fallback {
+  display: block; text-align: center; padding: 14px;
+  background: #1a1a1a; color: var(--primary-color);
+  border: 1px solid var(--primary-color); border-radius: 8px;
+  margin-top: 12px; text-decoration: none;
+  font-weight: 500; transition: all 0.2s ease;
+}
+.embed-fallback:hover { background: var(--primary-color); color: white; }
+.embed-fallback i { margin-right: 8px; }
+
 /* Source bar */
 .source-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: 16px;

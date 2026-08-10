@@ -11,15 +11,23 @@ function pickYouTubeTrailer(videos = []) {
 }
 
 function buildEmbedServers(type, movieId, season = 1, episode = 1) {
+  // Note: third-party embeds go up/down constantly. Most reliable as of late 2026:
+  //   vidsrc.to / multiembed.mov — primary
+  //   2embed.cc — frequently down (kept as fallback)
   if (type === 'tv') {
     return [
       {
-        name: 'Server 1',
+        name: 'Vidsrc',
         url: `https://vidsrc.to/embed/tv/${movieId}/${season}/${episode}`,
         status: 'active',
       },
       {
-        name: 'Server 2',
+        name: 'MultiEmbed',
+        url: `https://multiembed.mov/?video_id=${movieId}&s=${season}&e=${episode}`,
+        status: 'active',
+      },
+      {
+        name: '2Embed',
         url: `https://www.2embed.cc/embedtv/${movieId}&s=${season}&e=${episode}`,
         status: 'active',
       },
@@ -27,12 +35,17 @@ function buildEmbedServers(type, movieId, season = 1, episode = 1) {
   }
   return [
     {
-      name: 'Server 1',
+      name: 'Vidsrc',
       url: `https://vidsrc.to/embed/movie/${movieId}`,
       status: 'active',
     },
     {
-      name: 'Server 2',
+      name: 'MultiEmbed',
+      url: `https://multiembed.mov/?video_id=${movieId}`,
+      status: 'active',
+    },
+    {
+      name: '2Embed',
       url: `https://www.2embed.cc/embed/${movieId}`,
       status: 'active',
     },

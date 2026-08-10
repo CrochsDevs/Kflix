@@ -21,7 +21,8 @@ export default function PlayPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [trailerOpen, setTrailerOpen] = useState(false);
-  const [sourceMode, setSourceMode] = useState('archive'); // 'archive' | 'embed'
+  // Smart default: archive if available, else trailer (always works)
+  const [sourceMode, setSourceMode] = useState('trailer'); // 'trailer' | 'archive' | 'embed'
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
 
   useEffect(() => {
@@ -31,6 +32,9 @@ export default function PlayPage() {
     content(id, type)
       .then((res) => {
         setData(res.data);
+        // Pick best initial source: archive first (legal), then trailer as safe fallback
+        const hasArchive = (res.data.sources || []).length > 0;
+        if (hasArchive) setSourceMode('archive');
         return saveHistory({
           movieId: res.data.id,
           title: titleFor(res.data, type),
@@ -86,14 +90,24 @@ export default function PlayPage() {
     }
     if (sourceMode === 'embed' && hasEmbeds && activeSource) {
       return (
-        <iframe
-          key={activeSource.url}
-          className="player-frame"
-          src={activeSource.url}
-          title={title}
-          allowFullScreen
-          allow="autoplay; encrypted-media; picture-in-picture"
-        />
+        <div className="embed-wrap">
+          <iframe
+            key={activeSource.url}
+            className="player-frame"
+            src={activeSource.url}
+            title={title}
+            allowFullScreen
+            allow="autoplay; encrypted-media; picture-in-picture"
+          />
+          <a
+            className="embed-fallback"
+            href={activeSource.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i className="fas fa-external-link-alt" /> Open {activeSource.name} in new tab
+          </a>
+        </div>
       );
     }
     if (trailer) {
