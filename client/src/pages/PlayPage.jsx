@@ -158,6 +158,14 @@ export default function PlayPage() {
           </div>
         )}
 
+        {sourceMode === 'embed' && (
+          <div className="embed-note">
+            <i className="fas fa-info-circle" />
+            These servers are free and ad-supported. For best results, open in a new tab, or use an ad blocker
+            (e.g. Brave browser) on desktop. On mobile they may not play at all. The YouTube trailer above always works.
+          </div>
+        )}
+
         <div className="source-meta">
           {sourceMode === 'embed' ? (
             <>

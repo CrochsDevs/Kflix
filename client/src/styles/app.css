@@ -138,6 +138,20 @@
 .disclaimer i { color: var(--primary-color); margin-right: 6px; }
 .disclaimer strong { color: var(--text-gray); }
 
+/* Embed note */
+.embed-note {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 16px;
+  background: rgba(255, 173, 31, 0.08);
+  border: 1px solid rgba(255, 173, 31, 0.35);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+.embed-note i { color: #ffad1f; margin-right: 8px; }
+
 /* Source bar */
 .source-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: 16px;
