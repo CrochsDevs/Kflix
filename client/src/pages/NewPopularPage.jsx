@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import MovieCard from '../components/MovieCard';
 import Pagination from '../components/Pagination';
@@ -9,6 +10,7 @@ const SORTS_MOVIE = ['popularity.desc', 'vote_average.desc', 'release_date.desc'
 const SORTS_TV = ['popularity.desc', 'vote_average.desc', 'first_air_date.desc', 'name.asc'];
 
 export default function NewPopularPage() {
+  const navigate = useNavigate();
   const [params, setParams] = useState(() => new URLSearchParams({ filter: 'day', page: '1' }));
   const filter = params.get('filter') || 'day';
   const page = parseInt(params.get('page') || '1', 10);
@@ -100,7 +102,7 @@ export default function NewPopularPage() {
           item={activeItem.item}
           type={activeItem.type}
           onClose={() => setActiveItem(null)}
-          onPlay={() => (window.location.href = `/play/${activeItem.type}/${activeItem.item.id}`)}
+          onPlay={() => navigate(`/play/${activeItem.type}/${activeItem.item.id}`)}
         />
       )}
     </div>

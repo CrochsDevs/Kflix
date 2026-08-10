@@ -1,6 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { IMG, PLACEHOLDER, fmt, titleFor, dateFor } from '../api/images';
 
 export default function MovieCard({ item, type = 'movie', onInfo }) {
+  const navigate = useNavigate();
   const title = titleFor(item, type);
   const date = dateFor(item, type);
   const poster = IMG.poster(item.poster_path) || PLACEHOLDER;
@@ -23,7 +25,7 @@ export default function MovieCard({ item, type = 'movie', onInfo }) {
           <button
             className="play-icon"
             title="Play"
-            onClick={() => (window.location.href = `/play/${type}/${item.id}`)}
+            onClick={() => navigate(`/play/${type}/${item.id}`)}
           >
             <i className="fas fa-play" />
           </button>

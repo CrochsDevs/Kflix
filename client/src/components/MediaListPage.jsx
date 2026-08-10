@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MovieCard from './MovieCard';
 import Pagination from './Pagination';
@@ -8,6 +8,7 @@ import { discover, genres as fetchGenres } from '../api/client';
 
 export default function MediaListPage({ type, titleFor, heroTypes }) {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const search = params.get('search') || '';
   const genreId = parseInt(params.get('genre') || '0', 10);
   const filter = params.get('filter') || 'day';
@@ -74,7 +75,7 @@ export default function MediaListPage({ type, titleFor, heroTypes }) {
             <div className="hero-buttons">
               <button
                 className="btn-play"
-                onClick={() => (window.location.href = `/play/${type}/${heroItem.id}`)}
+                onClick={() => navigate(`/play/${type}/${heroItem.id}`)}
               >
                 <i className="fas fa-play" /> Play
               </button>
@@ -150,7 +151,7 @@ export default function MediaListPage({ type, titleFor, heroTypes }) {
           item={activeItem}
           type={type}
           onClose={() => setActiveItem(null)}
-          onPlay={() => (window.location.href = `/play/${type}/${activeItem.id}`)}
+          onPlay={() => navigate(`/play/${type}/${activeItem.id}`)}
         />
       )}
     </>
