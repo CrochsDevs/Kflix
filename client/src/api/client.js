@@ -23,18 +23,18 @@ export const content = (id, type) =>
 
 // --- Watchlist ---
 export const getWatchlist = (params) =>
-  api.get('/watchlist', { params }).then((r) => r.data);
+  api.get('/watchlist', { params, timeout: 25000 }).then((r) => r.data);
 export const addToWatchlist = (data) =>
-  api.post('/watchlist', data).then((r) => r.data);
+  api.post('/watchlist', data, { timeout: 25000 }).then((r) => r.data);
 export const removeFromWatchlist = (id, userId = 'guest') =>
-  api.delete(`/watchlist/${id}`, { params: { userId } }).then((r) => r.data);
+  api.delete(`/watchlist/${id}`, { params: { userId }, timeout: 25000 }).then((r) => r.data);
 export const clearWatchlist = (userId = 'guest') =>
-  api.delete('/watchlist', { params: { userId } }).then((r) => r.data);
+  api.delete('/watchlist', { params: { userId }, timeout: 25000 }).then((r) => r.data);
 export const watchlistStatus = (movieId, userId = 'guest') =>
-  api.get('/watchlist/status', { params: { movieId, userId } }).then((r) => r.data);
+  api.get('/watchlist/status', { params: { movieId, userId }, timeout: 25000 }).then((r) => r.data);
 
 // --- History ---
 export const saveHistory = (data) =>
-  api.post('/history', data).then((r) => r.data);
+  api.post('/history', data, { timeout: 20000 }).then((r) => r.data);
 
 export default api;

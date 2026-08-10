@@ -20,27 +20,31 @@ export function WatchlistProvider({ children }) {
       setIds(new Set(items));
       setCount(res.total || items.length);
     } catch (e) {
-      console.warn('Watchlist refresh failed:', e.message);
+      // Silent — UI works without persisted data on first load
     }
   }, []);
 
   useEffect(() => {
-    refresh();
+    // Slight delay so the page can render first; UI works without this completing
+    const t = setTimeout(refresh, 200);
+    return () => clearTimeout(t);
   }, [refresh]);
 
   const toggle = useCallback(
     async (item) => {
       const movieId = item.id || item.movieId;
       const inList = ids.has(movieId);
+      // Optimistic update
+      setIds((prev) => {
+        const next = new Set(prev);
+        if (inList) next.delete(movieId);
+        else next.add(movieId);
+        return next;
+      });
+      setCount((c) => Math.max(0, c + (inList ? -1 : 1)));
       try {
         if (inList) {
           await apiRemove(movieId, USER_ID);
-          setIds((prev) => {
-            const next = new Set(prev);
-            next.delete(movieId);
-            return next;
-          });
-          setCount((c) => Math.max(0, c - 1));
         } else {
           await apiAdd({
             id: movieId,
@@ -51,11 +55,16 @@ export function WatchlistProvider({ children }) {
             mediaType: item.mediaType || (item.first_air_date ? 'tv' : 'movie'),
             userId: USER_ID,
           });
-          setIds((prev) => new Set(prev).add(movieId));
-          setCount((c) => c + 1);
         }
       } catch (e) {
-        console.error('Toggle failed', e);
+        // Rollback optimistic update on failure
+        setIds((prev) => {
+          const next = new Set(prev);
+          if (inList) next.add(movieId);
+          else next.delete(movieId);
+          return next;
+        });
+        setCount((c) => Math.max(0, c + (inList ? 1 : -1)));
       }
     },
     [ids]
