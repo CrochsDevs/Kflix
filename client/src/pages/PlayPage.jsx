@@ -21,20 +21,18 @@ export default function PlayPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [trailerOpen, setTrailerOpen] = useState(false);
-  // Smart default: archive if available, else trailer (always works)
-  const [sourceMode, setSourceMode] = useState('trailer'); // 'trailer' | 'archive' | 'embed'
+  // Player mode: 'trailer' (default, always works) | 'embed'
+  const [sourceMode, setSourceMode] = useState('trailer');
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
 
   useEffect(() => {
     if (!id) return navigate('/');
     setLoading(true);
+    setSourceMode('trailer');
     setActiveSourceIndex(0);
     content(id, type)
       .then((res) => {
         setData(res.data);
-        // Pick best initial source: archive first (legal), then trailer as safe fallback
-        const hasArchive = (res.data.sources || []).length > 0;
-        if (hasArchive) setSourceMode('archive');
         return saveHistory({
           movieId: res.data.id,
           title: titleFor(res.data, type),
@@ -46,15 +44,9 @@ export default function PlayPage() {
       .finally(() => setLoading(false));
   }, [id, type, navigate]);
 
-  // Derived values (always computed so hooks below have stable dependencies)
-  const archiveSources = data?.sources || [];
   const embeds = data?.embeds || [];
-  const hasArchive = archiveSources.length > 0;
   const hasEmbeds = embeds.length > 0;
-  const currentSources = sourceMode === 'archive' ? archiveSources : embeds;
-  const activeSource = currentSources[activeSourceIndex] || null;
-
-  // (No auto-watchdog: let the user manually pick which server to use)
+  const activeEmbed = embeds[activeSourceIndex] || null;
 
   if (loading || !data) {
     return (
@@ -73,39 +65,25 @@ export default function PlayPage() {
   const recommendations = data.recommendations || [];
   const cast = (data.credits?.cast || []).slice(0, 8);
 
-  // Determine what to render in the player
   const renderPlayer = () => {
-    if (sourceMode === 'archive' && hasArchive && activeSource) {
-      return (
-        <video
-          key={activeSource.identifier}
-          className="player-frame"
-          src={activeSource.streamUrl}
-          poster={activeSource.posterUrl}
-          controls
-          preload="metadata"
-          playsInline
-        />
-      );
-    }
-    if (sourceMode === 'embed' && hasEmbeds && activeSource) {
+    if (sourceMode === 'embed' && hasEmbeds && activeEmbed) {
       return (
         <div className="embed-wrap">
           <iframe
-            key={activeSource.url}
+            key={activeEmbed.url}
             className="player-frame"
-            src={activeSource.url}
+            src={activeEmbed.url}
             title={title}
             allowFullScreen
             allow="autoplay; encrypted-media; picture-in-picture"
           />
           <a
             className="embed-fallback"
-            href={activeSource.url}
+            href={activeEmbed.url}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <i className="fas fa-external-link-alt" /> Open {activeSource.name} in new tab
+            <i className="fas fa-external-link-alt" /> Open {activeEmbed.name} in new tab
           </a>
         </div>
       );
@@ -144,33 +122,15 @@ export default function PlayPage() {
           <i className="fas fa-server" /> <span>SOURCE</span>
         </div>
 
-        {hasArchive && (
-          <div className="source-buttons">
-            <button
-              className={`source-mode ${sourceMode === 'archive' ? 'active' : ''}`}
-              onClick={() => {
-                setSourceMode('archive');
-                setActiveSourceIndex(0);
-              }}
-            >
-              <i className="fas fa-archive" /> Public Domain
-            </button>
-            {sourceMode === 'archive' &&
-              archiveSources.map((s, idx) => (
-                <button
-                  key={s.identifier}
-                  className={`source-btn ${idx === activeSourceIndex ? 'active' : ''}`}
-                  onClick={() => setActiveSourceIndex(idx)}
-                >
-                  <i className="fas fa-play" /> Archive {idx + 1}
-                  <span className="source-dot" />
-                </button>
-              ))}
-          </div>
-        )}
+        <div className="source-buttons">
+          <button
+            className={`source-mode ${sourceMode === 'trailer' ? 'active' : ''}`}
+            onClick={() => setSourceMode('trailer')}
+          >
+            <i className="fab fa-youtube" /> Trailer
+          </button>
 
-        {hasEmbeds && (
-          <div className="source-buttons">
+          {hasEmbeds && (
             <button
               className={`source-mode ${sourceMode === 'embed' ? 'active' : ''}`}
               onClick={() => {
@@ -180,28 +140,32 @@ export default function PlayPage() {
             >
               <i className="fas fa-bolt" /> Full Movie
             </button>
-            {sourceMode === 'embed' &&
-              embeds.map((s, idx) => (
-                <button
-                  key={s.name}
-                  className={`source-btn ${idx === activeSourceIndex ? 'active' : ''}`}
-                  onClick={() => setActiveSourceIndex(idx)}
-                >
-                  <i className="fas fa-play" /> {s.name}
-                  <span className="source-dot" />
-                </button>
-              ))}
+          )}
+        </div>
+
+        {sourceMode === 'embed' && hasEmbeds && (
+          <div className="source-buttons">
+            {embeds.map((s, idx) => (
+              <button
+                key={s.name}
+                className={`source-btn ${idx === activeSourceIndex ? 'active' : ''}`}
+                onClick={() => setActiveSourceIndex(idx)}
+              >
+                <i className="fas fa-play" /> {s.name}
+                <span className="source-dot" />
+              </button>
+            ))}
           </div>
         )}
 
         <div className="source-meta">
-          {sourceMode === 'archive' ? (
+          {sourceMode === 'embed' ? (
             <>
-              <i className="fas fa-shield-alt" /> Public Domain / CC via archive.org
+              <i className="fas fa-info-circle" /> Third-party streams (personal use)
             </>
           ) : (
             <>
-              <i className="fas fa-info-circle" /> Third-party streams (personal use)
+              <i className="fas fa-shield-alt" /> Official YouTube trailer
             </>
           )}
         </div>
@@ -235,7 +199,7 @@ export default function PlayPage() {
       {type === 'tv' && (
         <div className="episode-selector">
           <h4>Season {season} · Episode {episode}</h4>
-          <p className="ep-note">TV shows use the embed sources above for full-episode playback.</p>
+          <p className="ep-note">TV shows use the embed source above for full-episode playback.</p>
         </div>
       )}
 

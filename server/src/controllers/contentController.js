@@ -1,5 +1,4 @@
 const { tmdbRequest } = require('../services/tmdb');
-const { searchPlayableMovie } = require('../services/archive');
 
 function pickYouTubeTrailer(videos = []) {
   const trailer = videos.find(
@@ -59,13 +58,6 @@ async function getContent(req, res, next) {
         ? data.recommendations.results.slice(0, 12)
         : (data.similar?.results || []).slice(0, 12);
 
-    // Public-domain / CC streams from archive.org (free, safe)
-    const title = type === 'tv' ? data.name : data.title;
-    const releaseDate = type === 'tv' ? data.first_air_date : data.release_date;
-    const year = releaseDate ? releaseDate.slice(0, 4) : '';
-    const archiveSources = type === 'movie' ? await searchPlayableMovie(title, year, 3) : [];
-
-    // Embed servers (personal use only — third-party streams)
     const embeds = buildEmbedServers(type, id, season, episode);
 
     res.json({
@@ -75,7 +67,6 @@ async function getContent(req, res, next) {
         mediaType: type,
         trailer,
         recommendations,
-        sources: archiveSources,
         embeds,
       },
     });
