@@ -1,16 +1,50 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 const ARCHIVE_SEARCH = 'https://archive.org/advancedsearch.php';
 const ARCHIVE_META = 'https://archive.org/metadata';
 
 const MIN_FEATURE_SIZE = 100 * 1024 * 1024; // 100 MB minimum (filters out clips)
 
+// Local persistent cache for archive.org results (24h)
+const CACHE_DIR = path.resolve(__dirname, '..', '..', '.cache', 'archive');
+if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+
+function cacheKey(title, year) {
+  return `${(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${year || 'na'}.json`;
+}
+
+function readCache(key) {
+  try {
+    const file = path.join(CACHE_DIR, key);
+    if (!fs.existsSync(file)) return null;
+    if (Date.now() - fs.statSync(file).mtimeMs > 24 * 60 * 60 * 1000) return null;
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeCache(key, data) {
+  try {
+    fs.writeFileSync(path.join(CACHE_DIR, key), JSON.stringify(data));
+  } catch (e) {
+    /* swallow */
+  }
+}
+
 /**
  * Search Internet Archive for a feature-length playable copy of a movie.
  * Returns up to `limit` playable streams with metadata.
+ * Results are cached locally for 24h to avoid slow archive.org calls.
  */
 async function searchPlayableMovie(title, year = '', limit = 3) {
   if (!title) return [];
+
+  const key = cacheKey(title, year);
+  const cached = readCache(key);
+  if (cached) return cached;
 
   const stopWords = new Set([
     'the', 'a', 'an', 'of', 'and', 'or', 'in', 'on', 'at', 'to', 'for',
@@ -40,66 +74,71 @@ async function searchPlayableMovie(title, year = '', limit = 3) {
       'description',
       'licenseurl',
       'creator',
-      'subject',
-      'avg_rating',
       'downloads',
       'item_size',
     ].join(','),
     output: 'json',
-    rows: '50',
+    rows: '15',
     sort: 'downloads desc',
   });
 
+  let docs = [];
   try {
     const { data } = await axios.get(`${ARCHIVE_SEARCH}?${params.toString()}`, {
-      timeout: 8000,
+      timeout: 5000,
     });
-    const docs = (data && data.response && data.response.docs) || [];
-    const results = [];
-    const seen = new Set();
-
-    for (const doc of docs) {
-      if (results.length >= limit) break;
-
-      const size = parseInt(doc.item_size, 10) || 0;
-      if (size > 0 && size < MIN_FEATURE_SIZE) continue; // skip short clips
-
-      const cleanTitle = (Array.isArray(doc.title) ? doc.title[0] : doc.title || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9 ]/g, '');
-      const cleanQuery = title.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
-      if (seen.has(cleanTitle)) continue;
-
-      // Title match: prefer exact match, accept partial if size is large (feature film)
-      const exactMatch = cleanTitle === cleanQuery;
-      const containsMatch = cleanTitle.includes(cleanQuery) || cleanQuery.includes(cleanTitle);
-      if (!exactMatch && !containsMatch) continue;
-      if (!exactMatch && size < MIN_FEATURE_SIZE) continue;
-
-      seen.add(cleanTitle);
-
-      const file = await pickBestFile(doc.identifier);
-      if (!file) continue;
-      results.push({
-        identifier: doc.identifier,
-        title: doc.title,
-        year: doc.year,
-        description: doc.description,
-        licenseurl: doc.licenseurl,
-        creator: doc.creator,
-        ...file,
-      });
-    }
-    return results;
+    docs = (data && data.response && data.response.docs) || [];
   } catch (e) {
     return [];
   }
+
+  // Pre-filter candidates by size (skip short clips without metadata call)
+  const candidates = [];
+  const seen = new Set();
+  const cleanQuery = title.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+
+  for (const doc of docs) {
+    const cleanTitle = (Array.isArray(doc.title) ? doc.title[0] : doc.title || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '');
+    if (!cleanTitle || seen.has(cleanTitle)) continue;
+    if (!cleanTitle.includes(cleanQuery) && !cleanQuery.includes(cleanTitle)) continue;
+
+    const size = parseInt(doc.item_size, 10) || 0;
+    if (size > 0 && size < MIN_FEATURE_SIZE) continue;
+
+    seen.add(cleanTitle);
+    candidates.push(doc);
+    if (candidates.length >= 6) break; // hard cap on metadata calls
+  }
+
+  // Resolve metadata in parallel
+  const metadataResults = await Promise.all(
+    candidates.map((doc) =>
+      pickBestFile(doc.identifier).then((file) => {
+        if (!file) return null;
+        return {
+          identifier: doc.identifier,
+          title: doc.title,
+          year: doc.year,
+          description: doc.description,
+          licenseurl: doc.licenseurl,
+          creator: doc.creator,
+          ...file,
+        };
+      })
+    )
+  );
+
+  const results = metadataResults.filter(Boolean).slice(0, limit);
+  writeCache(key, results);
+  return results;
 }
 
 async function pickBestFile(identifier) {
   try {
     const { data } = await axios.get(`${ARCHIVE_META}/${identifier}`, {
-      timeout: 8000,
+      timeout: 4000,
     });
     const files = (data && data.files) || [];
 
@@ -107,7 +146,7 @@ async function pickBestFile(identifier) {
       (f) => {
         const fmt = (f.format || '').toLowerCase();
         const name = (f.name || '').toLowerCase();
-        const isVideoFormat =
+        return (
           fmt === 'mp4' ||
           fmt === 'h.264' ||
           fmt === 'mpeg4' ||
@@ -116,14 +155,13 @@ async function pickBestFile(identifier) {
           fmt === 'webm' ||
           fmt === 'matroska' ||
           fmt === 'quicktime' ||
-          (fmt === 'm4v' || name.endsWith('.m4v'));
-        return isVideoFormat;
+          (fmt === 'm4v' || name.endsWith('.m4v'))
+        );
       }
     );
     if (!video) return null;
 
     const videoUrl = `https://archive.org/download/${identifier}/${encodeURIComponent(video.name)}`;
-
     const poster = files.find((f) => /poster|thumb|cover|\.jpg$/i.test(f.name || ''));
     const posterUrl = poster
       ? `https://archive.org/download/${identifier}/${encodeURIComponent(poster.name)}`
@@ -137,12 +175,7 @@ async function pickBestFile(identifier) {
         ? 'video/ogg'
         : `video/${video.format}`;
 
-    return {
-      streamUrl: videoUrl,
-      posterUrl,
-      mime,
-      size: video.size ? parseInt(video.size, 10) : 0,
-    };
+    return { streamUrl: videoUrl, posterUrl, mime, size: video.size ? parseInt(video.size, 10) : 0 };
   } catch (e) {
     return null;
   }

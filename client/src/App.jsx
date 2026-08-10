@@ -1,14 +1,23 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import MoviesPage from './pages/MoviesPage';
-import TVShowsPage from './pages/TVShowsPage';
-import NewPopularPage from './pages/NewPopularPage';
-import WatchlistPage from './pages/WatchlistPage';
-import PlayPage from './pages/PlayPage';
-import NotFoundPage from './pages/NotFoundPage';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const MoviesPage = lazy(() => import('./pages/MoviesPage'));
+const TVShowsPage = lazy(() => import('./pages/TVShowsPage'));
+const NewPopularPage = lazy(() => import('./pages/NewPopularPage'));
+const WatchlistPage = lazy(() => import('./pages/WatchlistPage'));
+const PlayPage = lazy(() => import('./pages/PlayPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+function PageLoader() {
+  return (
+    <div className="play-loading">
+      <div className="spinner" />
+    </div>
+  );
+}
 
 export default function App() {
   const { pathname } = useLocation();
@@ -17,22 +26,24 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [pathname]);
 
-  const isPlay = false; // pathname.startsWith('/play');
+  const isPlay = false;
 
   return (
     <div className="app">
       {!isPlay && <Navbar />}
       <main className="main-content">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/movies" element={<MoviesPage />} />
-          <Route path="/tv" element={<TVShowsPage />} />
-          <Route path="/new-popular" element={<NewPopularPage />} />
-          <Route path="/watchlist" element={<WatchlistPage />} />
-          <Route path="/play/:type/:id" element={<PlayPage />} />
-          <Route path="/play/:id" element={<PlayPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/movies" element={<MoviesPage />} />
+            <Route path="/tv" element={<TVShowsPage />} />
+            <Route path="/new-popular" element={<NewPopularPage />} />
+            <Route path="/watchlist" element={<WatchlistPage />} />
+            <Route path="/play/:type/:id" element={<PlayPage />} />
+            <Route path="/play/:id" element={<PlayPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </main>
       {!isPlay && <Footer />}
     </div>

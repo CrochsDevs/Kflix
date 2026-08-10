@@ -1,6 +1,7 @@
 node_modules
 .env
 server/cache
+server/.cache
 server/data
 client/dist
 *.log

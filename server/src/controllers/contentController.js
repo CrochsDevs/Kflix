@@ -49,6 +49,7 @@ async function getContent(req, res, next) {
     if (!id) {
       return res.status(400).json({ success: false, message: 'Missing id' });
     }
+
     const data = await tmdbRequest(`/${type}/${id}`, {
       append_to_response: 'videos,credits,recommendations,similar',
     });
@@ -59,13 +60,24 @@ async function getContent(req, res, next) {
         ? data.recommendations.results.slice(0, 12)
         : (data.similar?.results || []).slice(0, 12);
 
-    // Public-domain / CC streams from archive.org (free, safe)
     const title = type === 'tv' ? data.name : data.title;
     const releaseDate = type === 'tv' ? data.first_air_date : data.release_date;
     const year = releaseDate ? releaseDate.slice(0, 4) : '';
-    const archiveSources = type === 'movie' ? await searchPlayableMovie(title, year, 3) : [];
 
-    // Embed servers (personal use only — third-party streams)
+    // Public-domain streams from archive.org (cached, fast after first request)
+    let archiveSources = [];
+    if (type === 'movie') {
+      try {
+        // Hard 8s budget — don't block the whole request
+        archiveSources = await Promise.race([
+          searchPlayableMovie(title, year, 3),
+          new Promise((resolve) => setTimeout(() => resolve([]), 8000)),
+        ]);
+      } catch (e) {
+        archiveSources = [];
+      }
+    }
+
     const embeds = buildEmbedServers(type, id, season, episode);
 
     res.json({
