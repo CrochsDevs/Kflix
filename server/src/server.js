@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const compression = require('compression');
+const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 
 const config = require('./config');
@@ -13,16 +14,30 @@ const app = express();
 
 app.use(cors());
 app.use(compression());
-app.use(express.json());
+app.use(express.json({ limit: '64kb' }));
 app.use(morgan('dev'));
 
-// HTTP cache headers for static-like GET responses
+// Aggressive caching for static-ish endpoints, short for dynamic
 app.use('/api', (req, res, next) => {
   if (req.method !== 'GET') return next();
-  // Short cache for everything; CDN/browser revalidates
-  res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  const p = req.path;
+  // Genres and trending are largely cacheable on the browser too
+  if (p === '/genres') {
+    res.set('Cache-Control', 'public, max-age=86400'); // 24h
+  } else if (p === '/discover' && !req.query.search && !req.query.genre) {
+    res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600'); // 5m
+  } else {
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  }
   next();
 });
+
+// Simple ETag for GET responses (CDN/browser revalidation)
+app.set('etag', 'strong');
+function etagBody(buf) {
+  return crypto.createHash('md5').update(buf).digest('hex').slice(0, 16);
+}
+// (etag auto-handled by express when set; compression must be before)
 
 app.use(
   '/api/',

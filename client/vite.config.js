@@ -8,11 +8,17 @@ export default defineConfig({
     minify: 'esbuild',
     cssMinify: true,
     sourcemap: false,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          axios: ['axios'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom')) return 'react-dom';
+            if (id.includes('react/') || id.includes('react-router')) return 'react';
+            if (id.includes('axios')) return 'axios';
+            return 'vendor';
+          }
         },
       },
     },
