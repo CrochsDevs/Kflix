@@ -20,7 +20,7 @@ function buildEmbedServers(type, movieId, season = 1, episode = 1) {
       },
       {
         name: 'Server 2',
-        url: `https://www.2embed.cc/embedtv/${movieId}&s=${season}&e=${episode}`,
+        url: `https://multiembed.mov/?video_id=${movieId}&s=${season}&e=${episode}`,
         status: 'active',
       },
     ];
@@ -33,7 +33,7 @@ function buildEmbedServers(type, movieId, season = 1, episode = 1) {
     },
     {
       name: 'Server 2',
-      url: `https://www.2embed.cc/embed/${movieId}`,
+      url: `https://multiembed.mov/?video_id=${movieId}`,
       status: 'active',
     },
   ];
