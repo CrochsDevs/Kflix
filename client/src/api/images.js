@@ -1,5 +1,5 @@
 // Build TMDB image URLs at the size we actually need (saves bandwidth)
-const IMG = {
+export const IMG = {
   poster: (path, size = 'w342') =>
     path ? `https://image.tmdb.org/t/p/${size}${path}` : null,
   backdrop: (path, size = 'w780') =>
